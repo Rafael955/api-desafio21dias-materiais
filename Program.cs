@@ -11,6 +11,7 @@ namespace webapi
 {
     public class Program
     {
+        public static string AlunoApi;
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();

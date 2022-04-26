@@ -1,10 +1,13 @@
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using EntityFrameworkPaginateCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using webapi.Models;
 using webapi.Servico;
+using webapi_materiais.Servico;
 
 namespace webapi.Controllers
 {
@@ -34,45 +37,50 @@ namespace webapi.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return StatusCode(404, new { Mensagem = "Material não foi encontrado!"});
             }
 
             var material = await _context.Materiais
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (material == null)
             {
-                return NotFound();
+                return StatusCode(404, new { Mensagem = "Material não foi encontrado!"});
             }
 
-            return Ok(material);
+            return StatusCode(200, material);
         }
 
         // POST: Materiais/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost("cadastrar-material")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Material material)
         {
-            _context.Add(material);
-            await _context.SaveChangesAsync();
-            return Ok(material);
+            if(ModelState.IsValid)
+            {
+                if(!(await AlunoServico.ValidarUsuario(material.AlunoId)))
+                    return StatusCode(400, new { Mensagem = $"Usuário de ID {material.AlunoId} não é válido ou não existe!"});
+                
+                _context.Add(material);
+                await _context.SaveChangesAsync();
+                return StatusCode(201, material);
+            }
+
+            return StatusCode(400, new { Mensagem = "O material passado é inválido!" });
         }
 
         // POST: Materiais/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPut("atualizar-material/{id:int}")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Material material)
         {
-            if (id != material.Id)
-            {
-                return NotFound();
-            }
+            if(!(await AlunoServico.ValidarUsuario(material.AlunoId)))
+                    return StatusCode(400, new { Mensagem = $"Usuário de ID {material.AlunoId} não é válido ou não existe!"});
 
             try
             {
+                material.Id = id;
                 _context.Update(material);
                 await _context.SaveChangesAsync();
             }
@@ -80,7 +88,7 @@ namespace webapi.Controllers
             {
                 if (!MaterialExists(material.Id))
                 {
-                    return NotFound();
+                    return StatusCode(404, new { Mensagem = "Material para atualizar não foi encontrado!"});
                 }
                 else
                 {
@@ -88,22 +96,21 @@ namespace webapi.Controllers
                 }
             }
             
-            return Ok(material);
+            return StatusCode(200, material);
         }
 
         // POST: Materiais/Delete/5
         [HttpDelete("remover-material/{id:int}")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             var material = await _context.Materiais.FindAsync(id);
             
             if(material == null)
-                return NotFound("material não encontrado");
+                return StatusCode(404, new { Mensagem = "Material não encontrado!"});
 
             _context.Materiais.Remove(material);
             await _context.SaveChangesAsync();
-            return NoContent();
+            return StatusCode(402);
         }
 
         private bool MaterialExists(int id)

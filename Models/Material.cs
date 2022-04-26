@@ -20,7 +20,7 @@ namespace webapi.Models
 
         [Column("aluno_id")]
         [Required]
-        public string AlunoId { get; set; }
+        public int AlunoId { get; set; }
 
         #endregion
     }

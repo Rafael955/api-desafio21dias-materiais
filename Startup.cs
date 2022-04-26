@@ -28,6 +28,7 @@ namespace webapi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            Program.AlunoApi = Configuration.GetConnectionString("AlunosApi");
             var strConn = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<DbContexto>(options => options.UseSqlServer(strConn));
 
@@ -37,7 +38,7 @@ namespace webapi
                 c.SwaggerDoc("v1", new OpenApiInfo { 
                     Title = "Web API Desafio 21 dias", 
                     Version = "v2",
-                    Description = "Primeira Web API feita com alunos no desafio 21 dias" 
+                    Description = "Primeira Web API feita para materiais no desafio 21 dias" 
                     });
             });
         }
